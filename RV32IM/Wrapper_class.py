@@ -28,6 +28,7 @@ class Wrapper(Elaboratable):
         self.reg_file = Register_file()
         self.memory = Memory_file()
         self.test = Signal(5)
+        self.s_type = 0b011
 
 
     def elaborate(self,platform:Platform)->Module:
@@ -158,13 +159,18 @@ class Wrapper(Elaboratable):
 
 
         with m.If(self.Busy[self.ID.s1] == Const(1)):
-            with m.If(self.Busy1[self.ID.s1] == Const(0)):
+            with m.If(self.ID.instruction_type == Const(3)):
+            	m.d.neg += self.ID.s1_data_in.eq(self.reg_file.write_Rs1_data) 	
+            with m.Elif(self.Busy1[self.ID.s1] == Const(0)):
                 m.d.neg += self.ID.s1_data_in.eq(self.ALU.result)
             with m.Else():
                 m.d.neg += self.ID.s1_data_in.eq(self.memory.data_out)
+            
 
         with m.If(self.Busy[self.ID.s2] == Const(1)):
-            with m.If(self.Busy1[self.ID.s2] == Const(0)):
+            with m.If(self.ID.instruction_type == self.s_type):
+            	m.d.neg += self.ID.s2_data_in.eq(self.reg_file.write_Rs2_data) 
+            with m.Elif(self.Busy1[self.ID.s2] == Const(0)):
                 m.d.neg += self.ID.s2_data_in.eq(self.ALU.result)
             with m.Else():
                 m.d.neg += self.ID.s2_data_in.eq(self.memory.data_out)
@@ -192,7 +198,7 @@ class Wrapper(Elaboratable):
         with m.If(self.ID.des!=self.ALU.reg_addr_in):
             m.d.sync += self.Busy1[self.ALU.reg_addr_in].eq(Const(1))
         with m.If(self.ALU.branching == Const(1)):
-            m.d.sync += self.pc.eq(self.pc+(self.ALU.immediate//4)-Const(2))
+            m.d.sync += self.pc.eq(self.pc+(self.ALU.immediate//4)-Const(3))
         with m.Elif(self.ALU.jump == Const(1)):
             m.d.sync += self.pc.eq(self.ALU.Ra+(self.ALU.immediate//4))
         with m.Elif(self.ID.ifload == Const(1)):

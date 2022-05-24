@@ -1,4 +1,4 @@
-#include"firmware.h"
+#include "firmware.h"
 
 void program2(void)  
 {  
@@ -10,21 +10,23 @@ void program2(void)
     if(a>b && a>c)  //a is greatest
     {  
         g = 1;
-        return;  
+        return ;  
     }  
     if(b>a  && b > c)  //b is greatest
     {  
         g = 2;
-        return;   
-    }  
+       return ;   
+    } 
     if(c>a && c>b)  //c is greatest
     {  
         g = 3;
-        return;   
+        return ;   
     }  
-    if(a == b && a == c)   //all 3 are equal
+    if(1)//a == b && a == c)   //all 3 are equal
     {  
         g = 4;
-        return;    
+       return ;    
     }  
+     
+
 }

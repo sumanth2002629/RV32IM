@@ -1,0 +1,40 @@
+[*]
+[*] GTKWave Analyzer v3.3.103 (w)1999-2019 BSI
+[*] Tue May 24 17:19:49 2022
+[*]
+[dumpfile] "/home/ubuntu/Desktop/RV32IM-main/RV32IM/test.vcd"
+[dumpfile_mtime] "Tue May 24 16:40:00 2022"
+[dumpfile_size] 144544
+[savefile] "/home/ubuntu/Desktop/RV32IM-main/RV32IM/test.sav"
+[timestart] 23750000
+[size] 1848 1016
+[pos] -51 -51
+*-21.681091 26500000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] bench.
+[treeopen] bench.top.
+[treeopen] bench.top.Wrapper1.
+[sst_width] 233
+[signals_width] 254
+[sst_expanded] 1
+[sst_vpaned_height] 289
+@28
+bench.top.Wrapper1.clk
+@22
+bench.top.Wrapper1.reg_file.$signal$15[31:0]
+bench.top.Wrapper1.IF.Pc[9:0]
+bench.top.Wrapper1.ID.instruction[31:0]
+bench.top.Wrapper1.ID.s1[4:0]
+bench.top.Wrapper1.ID.s2[4:0]
+bench.top.Wrapper1.ID.s1_data_in[31:0]
+bench.top.Wrapper1.ID.s2_data_in[31:0]
+bench.top.Wrapper1.ID.signextended_immediate[31:0]
+bench.top.Wrapper1.ALU.result[31:0]
+@28
+bench.top.Wrapper1.$signal$1039
+@22
+bench.top.Wrapper1.memory.alu_result[31:0]
+bench.top.Wrapper1.memory.data_out[31:0]
+@29
+bench.top.Wrapper1.$signal$1070
+[pattern_trace] 1
+[pattern_trace] 0
