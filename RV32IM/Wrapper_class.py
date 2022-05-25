@@ -158,19 +158,15 @@ class Wrapper(Elaboratable):
             m.d.sync += self.Busy[self.ID.des].eq(Const(1))#Busy[ID.des]+Const(1))
 
 
-        with m.If(self.Busy[self.ID.s1] == Const(1)):
-            with m.If(self.ID.instruction_type == Const(3)):
-            	m.d.neg += self.ID.s1_data_in.eq(self.reg_file.write_Rs1_data) 	
-            with m.Elif(self.Busy1[self.ID.s1] == Const(0)):
+        with m.If(self.Busy[self.ID.s1] == Const(1)):	
+            with m.If(self.Busy1[self.ID.s1] == Const(0)):
                 m.d.neg += self.ID.s1_data_in.eq(self.ALU.result)
             with m.Else():
                 m.d.neg += self.ID.s1_data_in.eq(self.memory.data_out)
             
 
         with m.If(self.Busy[self.ID.s2] == Const(1)):
-            with m.If(self.ID.instruction_type == self.s_type):
-            	m.d.neg += self.ID.s2_data_in.eq(self.reg_file.write_Rs2_data) 
-            with m.Elif(self.Busy1[self.ID.s2] == Const(0)):
+            with m.If(self.Busy1[self.ID.s2] == Const(0)):
                 m.d.neg += self.ID.s2_data_in.eq(self.ALU.result)
             with m.Else():
                 m.d.neg += self.ID.s2_data_in.eq(self.memory.data_out)
