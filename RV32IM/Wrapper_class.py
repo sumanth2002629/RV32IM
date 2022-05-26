@@ -155,7 +155,12 @@ class Wrapper(Elaboratable):
         m.d.comb += self.reg_file.load_Rs2_addr.eq(self.ID.s2)
     
         with m.If(self.ID.des != Const(0)):
-            m.d.sync += self.Busy[self.ID.des].eq(Const(1))#Busy[ID.des]+Const(1))
+            with m.If(self.ID.instruction_type == Const(3)):
+                m.d.sync += self.Busy[self.ID.des].eq(Const(0))#Busy[ID.des]+Const(1))
+            with m.Else():
+                m.d.sync += self.Busy[self.ID.des].eq(Const(1))
+            
+
 
 
         with m.If(self.Busy[self.ID.s1] == Const(1)):
@@ -176,7 +181,6 @@ class Wrapper(Elaboratable):
 
         with m.If(self.Busy[self.ID.s2]==Const(0)):
             m.d.neg += self.ID.s2_data_in.eq(self.reg_file.write_Rs2_data)
-
      
     
 
@@ -188,15 +192,22 @@ class Wrapper(Elaboratable):
         m.d.sync += self.ALU.pc.eq(self.pc)
         m.d.sync += self.ALU.Ra.eq(self.ID.s1data_out)
         m.d.sync += self.ALU.Rb.eq(self.ID.s2data_out)
+        m.d.sync += self.ALU.src2_addr.eq(self.ID.s2)
 
         
         m.d.sync += self.ALU.immediate.eq(self.ID.signextended_immediate)
         with m.If(self.ID.des!=self.ALU.reg_addr_in):
-            m.d.sync += self.Busy1[self.ALU.reg_addr_in].eq(Const(1))
+            with m.If(self.ALU.inst_type==Const(3)):
+                m.d.sync += self.Busy1[self.ALU.reg_addr_in].eq(Const(0))
+            with m.Else():
+                 m.d.sync += self.Busy1[self.ALU.reg_addr_in].eq(Const(1))
+
         with m.If(self.ALU.branching == Const(1)):
             m.d.sync += self.pc.eq(self.pc+(self.ALU.immediate//4)-Const(3))
+
         with m.Elif(self.ALU.jump == Const(1)):
             m.d.sync += self.pc.eq(self.ALU.Ra+(self.ALU.immediate//4))
+
         with m.Elif(self.ID.ifload == Const(1)):
             #m.d.comb += self.test.eq(self.IF.out[15:20])
             with m.If(self.ID.des == self.IF.out[15:20]):
@@ -221,18 +232,22 @@ class Wrapper(Elaboratable):
             m.d.sync += self.ALU.inst_type1.eq(self.ID.it1)
             m.d.sync += self.ALU.inst_type2.eq(self.ID.it2)
             m.d.sync += self.ALU.inst_type3.eq(self.ID.it3)
+        
 
             m.d.comb += self.memory.load.eq(self.ALU.load_mem)
             m.d.comb += self.memory.write.eq(self.ALU.write_mem)
-            with m.If(self.Busy[self.memory.reg_addr_out] == Const(1)):
-                m.d.comb += self.memory.data_in.eq(self.memory.data_out)
-            with m.Else():
+
+            with m.If(self.Busy[self.memory.src_reg_addr] == Const(0)):
                 m.d.comb += self.memory.data_in.eq(self.ALU.Rb)
+            with m.Else():
+                m.d.comb += self.memory.data_in.eq(self.memory.data_out)
+               
             m.d.comb += self.memory.addr.eq(self.ALU.result)
 
     
             m.d.sync += self.memory.load_wb.eq(self.ALU.load_wb)
             m.d.sync += self.memory.reg_addr_out.eq(self.ALU.reg_addr_out)
+            m.d.comb += self.memory.src_reg_addr.eq(self.ALU.src2_addr)
             m.d.comb += self.memory.alu_result.eq(self.ALU.result)
 
         
@@ -245,7 +260,7 @@ class Wrapper(Elaboratable):
 
             m.d.comb += self.memory.load.eq(self.ALU.load_mem)
             m.d.comb += self.memory.write.eq(self.ALU.write_mem)
-            with m.If(self.Busy[self.memory.reg_addr_out] == Const(1)):
+            with m.If(self.Busy[self.memory.src_reg_addr] == Const(1)):
                 m.d.comb += self.memory.data_in.eq(self.memory.data_out)
             with m.Else():
                 m.d.comb += self.memory.data_in.eq(self.ALU.Rb)
@@ -254,6 +269,7 @@ class Wrapper(Elaboratable):
     
             m.d.sync += self.memory.load_wb.eq(self.ALU.load_wb)
             m.d.sync += self.memory.reg_addr_out.eq(self.ALU.reg_addr_out)
+            m.d.comb += self.memory.src_reg_addr.eq(self.ALU.src2_addr)
             m.d.comb += self.memory.alu_result.eq(self.ALU.result)
             m.d.sync += self.counter_branch.eq(Const(0))
 
@@ -293,6 +309,7 @@ class Wrapper(Elaboratable):
     
             m.d.sync += self.memory.load_wb.eq(0b0)
             m.d.sync += self.memory.reg_addr_out.eq(0b00000)
+            m.d.comb += self.memory.src_reg_addr.eq(0b00000)
             m.d.comb += self.memory.alu_result.eq(0x00000000)
 
 

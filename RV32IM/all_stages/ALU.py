@@ -31,6 +31,7 @@ class ALU(Elaboratable):
         self.reg_addr_out = Signal(5)
         self.jump = Signal(1)
         self.pc = Signal(10)
+        self.src2_addr = Signal(5)
 
         self.R_type = 0b111
 
