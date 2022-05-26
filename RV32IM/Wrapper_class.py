@@ -158,7 +158,7 @@ class Wrapper(Elaboratable):
             m.d.sync += self.Busy[self.ID.des].eq(Const(1))#Busy[ID.des]+Const(1))
 
 
-        with m.If(self.Busy[self.ID.s1] == Const(1)):	
+        with m.If(self.Busy[self.ID.s1] == Const(1)):
             with m.If(self.Busy1[self.ID.s1] == Const(0)):
                 m.d.neg += self.ID.s1_data_in.eq(self.ALU.result)
             with m.Else():
@@ -266,6 +266,12 @@ class Wrapper(Elaboratable):
                 m.d.sync += self.ALU.inst_type3.eq(0)
               
             with m.Elif(self.counter_branch == Const(2)):
+                m.d.sync += self.Busy[self.memory.reg_addr_out].eq(Const(0))
+                m.d.sync += self.Busy[self.ALU.reg_addr_out].eq(Const(0))
+                m.d.sync += self.Busy[self.ID.des].eq(Const(0))
+                m.d.sync += self.Busy1[self.memory.reg_addr_out].eq(Const(0))
+                m.d.sync += self.Busy1[self.ALU.reg_addr_out].eq(Const(0))
+                m.d.sync += self.Busy1[self.ID.des].eq(Const(0))
                 m.d.sync += self.ALU.inst_type0.eq(0)
                 m.d.sync += self.ALU.inst_type1.eq(0)
                 m.d.sync += self.ALU.inst_type2.eq(0)
@@ -336,7 +342,7 @@ if __name__ == "__main__":
 
 sim.add_sync_process(process,domain="sync")  # or sim.add_sync_process(process), see below
 with sim.write_vcd("test.vcd", "test.gtkw", traces=Wrapper1.IF.ports()+Wrapper1.ID.ports()+Wrapper1.ALU.ports()+Wrapper1.memory.ports()+Wrapper1.reg_file.ports()):
-    sim.run_until(100e-6, run_passive=True)
+    sim.run_until(1000e-6, run_passive=True)
 
 
 
