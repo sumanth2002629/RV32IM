@@ -3,9 +3,9 @@
 void program2(void)  
 {  
     int a, b, c;
-    a=2;
-    b=3;
-    c=10;
+    a=3;
+    b=9;
+    c=4;
     int g=0;
     if(a>b && a>c)  //a is greatest
     {  

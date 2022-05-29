@@ -33,6 +33,8 @@ class ID(Elaboratable):
         self.it2 = Signal(10)
         self.it3 = Signal(7)
         self.ifload = Signal(1)
+        self.shamt = Signal(5)
+        self.prev_branch = Signal(1)
         
         #type encoding
         self.LUI 	=	0b0110111
@@ -60,7 +62,7 @@ class ID(Elaboratable):
         self.XORI	=	0b1000010011
         self.ORI	=	0b1100010011
         self.ANDI	=	0b1110010011
-        self.SLLI 	=	0b00010010011
+        self.SLLI 	=	0b00010010011    
         self.SRLI 	=	0b01010010011
         self.SRAI 	=	0b11010010011
         self.ADD 	=	0b00000110011
@@ -119,10 +121,11 @@ class ID(Elaboratable):
 
         
         with m.Switch(self.it2):
-            with m.Case(self.ADDI,self.SLTI,self.SLTIU,self.XORI,self.ORI,self.ANDI,self.JALR):#didnot implement SLLI,SRAI, SRLI
+            with m.Case(self.ADDI,self.SLTI,self.SLTIU,self.XORI,self.ORI,self.ANDI,self.JALR,self.SLLI):#didnot implement SLLI,SRAI, SRLI
                 m.d.comb+=self.instruction_type.eq(0b001)#I type
                 m.d.comb+=self.s1data_out.eq(self.s1_data_in)
                 m.d.comb+=self.des.eq(self.instruction[7:12])
+                m.d.comb += self.shamt.eq(self.instruction[20:25])
                 with m.If(self.instruction[31]==Const(0)):
                     m.d.comb+=self.signextended_immediate.eq(Cat(self.instruction[20:],Const(0x00000)))
                 with m.Else():
@@ -134,10 +137,13 @@ class ID(Elaboratable):
 
                 with m.If(self.instruction[31]==Const(0)):
                     m.d.comb+=self.signextended_immediate.eq(Cat(self.instruction[20:],Const(0x00000)))
-                    m.d.comb+=self.ifload.eq(Const(1))
-
+                  
                 with m.Elif(self.instruction[31]==Const(1)):
                     m.d.comb+=self.signextended_immediate.eq(Cat(self.instruction[20:],Const(0xFFFFF)))
+
+                with m.If(self.prev_branch == Const(1)):
+                    m.d.comb+=self.ifload.eq(Const(0))
+                with m.Else():
                     m.d.comb+=self.ifload.eq(Const(1))
                 
             with m.Case(self.BEQ,self.BNE,self.BLT,self.BGE,self.BLTU,self.BGEU):

@@ -32,6 +32,7 @@ class ALU(Elaboratable):
         self.jump = Signal(1)
         self.pc = Signal(10)
         self.src2_addr = Signal(5)
+        self.shamt = Signal(5)
 
         self.R_type = 0b111
 
@@ -57,6 +58,7 @@ class ALU(Elaboratable):
         self.I_type = 0b001
 
         self.JALR	=	0b0001100111
+        self.SLLI   =   0b00010010011
         self.ADDI    =   0b0000010011
         self.SLTI    =   0b0100010011
         self.SLTIU   =   0b0110010011
@@ -185,6 +187,9 @@ class ALU(Elaboratable):
                     with m.Case(self.LBU,self.LB):
                         m.d.comb+=self.result.eq(self.Ra + self.immediate)
                         m.d.comb += self.load_mem.eq(0b01)
+                    with m.Case(self.SLLI):
+                        m.d.comb+=self.result.eq(self.Ra << self.shamt)
+
 
 
             with m.Case(self.B_type):

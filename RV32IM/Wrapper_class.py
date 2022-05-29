@@ -29,6 +29,7 @@ class Wrapper(Elaboratable):
         self.memory = Memory_file()
         self.test = Signal(5)
         self.s_type = 0b011
+        self.temp = Signal(32)
 
 
     def elaborate(self,platform:Platform)->Module:
@@ -167,14 +168,40 @@ class Wrapper(Elaboratable):
             with m.If(self.Busy1[self.ID.s1] == Const(0)):
                 m.d.neg += self.ID.s1_data_in.eq(self.ALU.result)
             with m.Else():
-                m.d.neg += self.ID.s1_data_in.eq(self.memory.data_out)
+                with m.If(self.ALU.inst_type!=0b011):
+                    with m.If(self.ALU.inst_type!=0b100):
+                        with m.If(self.ALU.reg_addr_out == self.ID.s1):
+                            m.d.neg += self.ID.s1_data_in.eq(self.ALU.result)
+                        with m.Elif(self.ALU.reg_addr_out == self.ID.s2):
+                            m.d.neg += self.ID.s1_data_in.eq(self.ALU.result)
+                        with m.Else():
+                            m.d.neg += self.ID.s1_data_in.eq(self.memory.data_out)
+                    with m.Else(): 
+                        m.d.neg += self.ID.s1_data_in.eq(self.memory.data_out)
+
+                with m.Else():
+                    m.d.neg += self.ID.s1_data_in.eq(self.memory.data_out)
+
             
 
         with m.If(self.Busy[self.ID.s2] == Const(1)):
             with m.If(self.Busy1[self.ID.s2] == Const(0)):
                 m.d.neg += self.ID.s2_data_in.eq(self.ALU.result)
             with m.Else():
-                m.d.neg += self.ID.s2_data_in.eq(self.memory.data_out)
+                with m.If(self.ALU.inst_type!=0b011):
+                    with m.If(self.ALU.inst_type!=0b100):
+                        with m.If(self.ALU.reg_addr_out == self.ID.s2):
+                            m.d.neg += self.ID.s2_data_in.eq(self.ALU.result)
+                        with m.Elif(self.ALU.reg_addr_out == self.ID.s2):
+                            m.d.neg += self.ID.s2_data_in.eq(self.ALU.result)
+                        with m.Else():
+                            m.d.neg += self.ID.s2_data_in.eq(self.memory.data_out)
+
+                    with m.Else(): 
+                        m.d.neg += self.ID.s2_data_in.eq(self.memory.data_out)
+                with m.Else():
+                    m.d.neg += self.ID.s2_data_in.eq(self.memory.data_out)
+
 
         with m.If(self.Busy[self.ID.s1]==Const(0)):
             m.d.neg += self.ID.s1_data_in.eq(self.reg_file.write_Rs1_data)
@@ -193,6 +220,7 @@ class Wrapper(Elaboratable):
         m.d.sync += self.ALU.Ra.eq(self.ID.s1data_out)
         m.d.sync += self.ALU.Rb.eq(self.ID.s2data_out)
         m.d.sync += self.ALU.src2_addr.eq(self.ID.s2)
+        m.d.sync += self.ALU.shamt.eq(self.ID.shamt)
 
         
         m.d.sync += self.ALU.immediate.eq(self.ID.signextended_immediate)
@@ -203,6 +231,7 @@ class Wrapper(Elaboratable):
                  m.d.sync += self.Busy1[self.ALU.reg_addr_in].eq(Const(1))
 
         with m.If(self.ALU.branching == Const(1)):
+            m.d.comb += self.temp.eq(self.ALU.immediate//4)
             m.d.sync += self.pc.eq(self.pc+(self.ALU.immediate//4)-Const(3))
 
         with m.Elif(self.ALU.jump == Const(1)):
@@ -221,6 +250,7 @@ class Wrapper(Elaboratable):
             m.d.sync += self.pc.eq(self.pc+Const(1))  
         with m.If(self.ALU.branching == Const(1)):
             m.d.sync += self.counter_branch.eq(self.counter_branch+Const(1))
+            m.d.sync += self.ID.prev_branch.eq(Const(1))   # previous instruction(pc-2) is giving branch signal to id stage. 
         with m.If(self.ALU.jump == Const(1)):
             m.d.sync += self.counter_branch.eq(self.counter_branch+Const(1))
        
@@ -260,6 +290,7 @@ class Wrapper(Elaboratable):
 
             m.d.comb += self.memory.load.eq(self.ALU.load_mem)
             m.d.comb += self.memory.write.eq(self.ALU.write_mem)
+
             with m.If(self.Busy[self.memory.src_reg_addr] == Const(1)):
                 m.d.comb += self.memory.data_in.eq(self.memory.data_out)
             with m.Else():
@@ -280,6 +311,7 @@ class Wrapper(Elaboratable):
                 m.d.sync += self.ALU.inst_type1.eq(0)
                 m.d.sync += self.ALU.inst_type2.eq(0)
                 m.d.sync += self.ALU.inst_type3.eq(0)
+                m.d.sync += self.ID.prev_branch.eq(0)
               
             with m.Elif(self.counter_branch == Const(2)):
                 m.d.sync += self.Busy[self.memory.reg_addr_out].eq(Const(0))
