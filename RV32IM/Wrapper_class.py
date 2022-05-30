@@ -172,8 +172,6 @@ class Wrapper(Elaboratable):
                     with m.If(self.ALU.inst_type!=0b100):
                         with m.If(self.ALU.reg_addr_out == self.ID.s1):
                             m.d.neg += self.ID.s1_data_in.eq(self.ALU.result)
-                        with m.Elif(self.ALU.reg_addr_out == self.ID.s2):
-                            m.d.neg += self.ID.s1_data_in.eq(self.ALU.result)
                         with m.Else():
                             m.d.neg += self.ID.s1_data_in.eq(self.memory.data_out)
                     with m.Else(): 
@@ -191,8 +189,6 @@ class Wrapper(Elaboratable):
                 with m.If(self.ALU.inst_type!=0b011):
                     with m.If(self.ALU.inst_type!=0b100):
                         with m.If(self.ALU.reg_addr_out == self.ID.s2):
-                            m.d.neg += self.ID.s2_data_in.eq(self.ALU.result)
-                        with m.Elif(self.ALU.reg_addr_out == self.ID.s2):
                             m.d.neg += self.ID.s2_data_in.eq(self.ALU.result)
                         with m.Else():
                             m.d.neg += self.ID.s2_data_in.eq(self.memory.data_out)
