@@ -24,8 +24,11 @@ class ID(Elaboratable):
         self.des = Signal(5)
         self.s1 = Signal(5)
         self.s2 = Signal(5)
+        self.csr_addr = Signal(12)
         self.s1data_out = Signal(signed(32))
         self.s2data_out = Signal(signed(32))
+        self.csrdata_in = Signal(32)
+        self.csrdata_out = Signal(32)
         self.signextended_immediate = Signal(signed(32))
         self.instruction_type = Signal(3)
         self.it0 = Signal(17)
@@ -33,6 +36,8 @@ class ID(Elaboratable):
         self.it2 = Signal(10)
         self.it3 = Signal(7)
         self.ifload = Signal(1)
+        self.shamt = Signal(5)
+        self.prev_branch = Signal(1)
         
         #type encoding
         self.LUI 	=	0b0110111
@@ -60,9 +65,15 @@ class ID(Elaboratable):
         self.XORI	=	0b1000010011
         self.ORI	=	0b1100010011
         self.ANDI	=	0b1110010011
-        self.SLLI 	=	0b00010010011
+        self.SLLI 	=	0b00010010011    
         self.SRLI 	=	0b01010010011
         self.SRAI 	=	0b11010010011
+        self.CSRRW  =   0b0011110011
+        self.CSRRS  =   0b0101110011
+        self.CSRRC  =   0b0111110011
+        self.CSRRWI =   0b1011110011
+        self.CSRRSI =   0b1101110011
+        self.CSRRCI =   0b1111110011
         self.ADD 	=	0b00000110011
         self.SUB 	=	0b10000110011
         self.SLL 	=	0b00010110011
@@ -104,6 +115,7 @@ class ID(Elaboratable):
 
         m.d.comb+=self.s1.eq(self.instruction[15:20])
         m.d.comb+=self.s2.eq(self.instruction[20:25])
+        m.d.comb += self.csr_addr.eq(self.instruction[20:32])
         #m.d.comb+=self.des.eq(self.instruction[7:12])
 
         #m.d.comb+=self.regfile[self.s1].eq(0xAAAAAAAA)
@@ -119,10 +131,11 @@ class ID(Elaboratable):
 
         
         with m.Switch(self.it2):
-            with m.Case(self.ADDI,self.SLTI,self.SLTIU,self.XORI,self.ORI,self.ANDI,self.JALR):#didnot implement SLLI,SRAI, SRLI
+            with m.Case(self.ADDI,self.SLTI,self.SLTIU,self.XORI,self.ORI,self.ANDI,self.JALR,self.SLLI):#didnot implement SLLI,SRAI, SRLI
                 m.d.comb+=self.instruction_type.eq(0b001)#I type
                 m.d.comb+=self.s1data_out.eq(self.s1_data_in)
                 m.d.comb+=self.des.eq(self.instruction[7:12])
+                m.d.comb += self.shamt.eq(self.instruction[20:25])
                 with m.If(self.instruction[31]==Const(0)):
                     m.d.comb+=self.signextended_immediate.eq(Cat(self.instruction[20:],Const(0x00000)))
                 with m.Else():
@@ -131,8 +144,27 @@ class ID(Elaboratable):
                 m.d.comb+=self.instruction_type.eq(0b001)#I type 
                 m.d.comb+=self.s1data_out.eq(self.s1_data_in)
                 m.d.comb+=self.des.eq(self.instruction[7:12])
-                m.d.comb+=self.signextended_immediate.eq(Cat(self.instruction[20:],Const(0x00000)))
-                m.d.comb+=self.ifload.eq(Const(1))
+
+                with m.If(self.instruction[31]==Const(0)):
+                    m.d.comb+=self.signextended_immediate.eq(Cat(self.instruction[20:],Const(0x00000)))
+                  
+                with m.Elif(self.instruction[31]==Const(1)):
+                    m.d.comb+=self.signextended_immediate.eq(Cat(self.instruction[20:],Const(0xFFFFF)))
+
+                with m.If(self.prev_branch == Const(1)):
+                    m.d.comb+=self.ifload.eq(Const(0))
+                with m.Else():
+                    m.d.comb+=self.ifload.eq(Const(1))
+
+            with m.Case(self.CSRRW,self.CSRRS,self.CSRRC):
+                m.d.comb+=self.instruction_type.eq(0b001)
+                m.d.comb+=self.s1data_out.eq(self.s1_data_in)
+                m.d.comb+=self.csrdata_out.eq(self.csrdata_in)
+
+            with m.Case(self.CSRRWI,self.CSRRSI,self.CSRRCI):
+                m.d.comb+=self.instruction_type.eq(0b001)
+                m.d.comb+=self.s1data_out.eq(Cat(self.instruction[15:20],0b000000000000000000000000000))
+                m.d.comb+=self.csrdata_out.eq(self.csrdata_in)
                 
             with m.Case(self.BEQ,self.BNE,self.BLT,self.BGE,self.BLTU,self.BGEU):
                 m.d.comb+=self.instruction_type.eq(0b100)#B type
@@ -146,7 +178,11 @@ class ID(Elaboratable):
                 m.d.comb+=self.instruction_type.eq(0b011)#S type
                 m.d.comb+=self.s1data_out.eq(self.s1_data_in)
                 m.d.comb+=self.s2data_out.eq(self.s2_data_in)
-                m.d.comb+=self.signextended_immediate.eq(Cat(self.instruction[7:12],self.instruction[25:],Const(0x00000)))
+
+                with m.If(self.instruction[31]==Const(0)):
+                    m.d.comb+=self.signextended_immediate.eq(Cat(self.instruction[7:12],self.instruction[25:],Const(0x00000)))
+                with m.Else():
+                    m.d.comb+=self.signextended_immediate.eq(Cat(self.instruction[7:12],self.instruction[25:],Const(0xFFFFF)))
         with m.Switch(self.it3):
             with m.Case(self.LUI,self.AUIPC): 
                 m.d.comb+=self.instruction_type.eq(0b101)#U type

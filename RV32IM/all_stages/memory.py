@@ -14,6 +14,8 @@ class Memory_file(Elaboratable):
         self.addr = Signal(10)
         self.write = Signal(2)
         self.data_in = Signal(32)
+        self.src_reg_addr = Signal(5)
+        self.temp_csr = Signal(32)
 
         #output 
         self.data_out = Signal(32)
@@ -26,8 +28,10 @@ class Memory_file(Elaboratable):
         self.word = 0b11
 
         self.load_wb = Signal(1)
+        self.load_wb_csr = Signal(1)
         self.reg_addr_out = Signal(5)
         self.alu_result = Signal(32)
+        self.csr_addr = Signal(12)
         
 
 
@@ -62,7 +66,7 @@ class Memory_file(Elaboratable):
         self.addr,
         self.write,
         self.data_in,
-        self.data_out] 
+        self.data_out,self.reg_addr_out,self.src_reg_addr] 
 
 if(__name__=="__main__"):
     parser = main_parser()
@@ -112,7 +116,7 @@ if(__name__=="__main__"):
         yield
 
 
-#sim.add_sync_process(process)
-#with sim.write_vcd("mem.vcd","mem.gtkw",traces=Memory_file.ports()):
-#	sim.run_until(100e-6, run_passive=True)
+# sim.add_sync_process(process)
+# with sim.write_vcd("mem.vcd","mem.gtkw",traces=Memory_file.ports()):
+# 	sim.run_until(100e-6, run_passive=True)
 

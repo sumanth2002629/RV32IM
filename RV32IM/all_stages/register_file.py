@@ -12,16 +12,23 @@ class Register_file(Elaboratable):
         #inputs
         self.load_Rs1_addr = Signal(5)
         self.load_Rs2_addr = Signal(5)
+        self.load_csr_addr = Signal(12)
         self.write = Signal(1)
+        self.write_csr = Signal(1)
         self.write_addr = Signal(5)
         self.write_data = Signal(32)
+        self.write_csr_addr = Signal(12)
+        self.temp_csr = Signal(32)
 
         #output 
         self.write_Rs1_data = Signal(32)
         self.write_Rs2_data = Signal(32)
+        self.write_csr_data = Signal(32)
         self.reg_update = Array([Signal(1) for i in range(2**5)])
 
         self.reg = Array([Signal(signed(32)) for i in range(2**5)])
+
+        self.csrs = Array([Signal(signed(32)) for i in range(2**12)])
 
 
     def elaborate(self,platform:Platform)->Module:
@@ -40,13 +47,20 @@ class Register_file(Elaboratable):
 
         m.d.comb += self.write_Rs1_data.eq(self.reg[self.load_Rs1_addr])
         m.d.comb += self.write_Rs2_data.eq(self.reg[self.load_Rs2_addr])
+        m.d.comb += self.write_csr_data.eq(self.csrs[self.load_csr_addr])
 		
         with m.If(self.write):
-            m.d.sync += self.reg[self.write_addr].eq(self.write_data)
-            m.d.sync += self.reg_update[self.write_addr].eq(Const(1))
-            self.write.eq(Const(0))
+            with m.If(self.write_csr):
+                m.d.sync += self.reg[self.write_addr].eq(self.temp_csr)
+            with m.Else():
+                m.d.sync += self.reg[self.write_addr].eq(self.write_data)
+                m.d.sync += self.reg_update[self.write_addr].eq(Const(1))
+                self.write.eq(Const(0))
         with m.Else():
-            m.d.sync += self.reg[Const(0)].eq(0)    
+            m.d.sync += self.reg[Const(0)].eq(0)   
+
+        with m.If(self.write_csr):
+            m.d.sync += self.csrs[self.write_csr_addr].eq(self.write_data) 
         
         return m    
 

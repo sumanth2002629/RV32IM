@@ -13,6 +13,7 @@ class ALU(Elaboratable):
         self.Rb_unsigned = Signal(32)
         self.Ra = Signal(signed(32))
         self.Rb= Signal(signed(32))
+        self.CSR_in = Signal(32)
         self.result = Signal(signed(32))
         self.result64 = Signal(signed(64))
         self.inst_type = Signal(3)
@@ -31,6 +32,11 @@ class ALU(Elaboratable):
         self.reg_addr_out = Signal(5)
         self.jump = Signal(1)
         self.pc = Signal(10)
+        self.src2_addr = Signal(5)
+        self.src1_addr = Signal(5)
+        self.shamt = Signal(5)
+        self.temp_csr = Signal(32)
+        self.csr_addr = Signal(12)
 
         self.R_type = 0b111
 
@@ -56,6 +62,7 @@ class ALU(Elaboratable):
         self.I_type = 0b001
 
         self.JALR	=	0b0001100111
+        self.SLLI   =   0b00010010011
         self.ADDI    =   0b0000010011
         self.SLTI    =   0b0100010011
         self.SLTIU   =   0b0110010011
@@ -67,6 +74,12 @@ class ALU(Elaboratable):
         self.LH		=	0b0010000011
         self.LBU 	=	0b1000000011
         self.LHU 	=	0b1010000011
+        self.CSRRW  =   0b0011110011
+        self.CSRRS  =   0b0101110011
+        self.CSRRC  =   0b0111110011
+        self.CSRRWI =   0b1011110011
+        self.CSRRSI =   0b1101110011
+        self.CSRRCI =   0b1111110011
 
         self.B_type = 0b100
 
@@ -95,6 +108,8 @@ class ALU(Elaboratable):
         self.write_mem = Signal(2)
 
         self.load_wb = Signal(1)
+
+        self.load_wb_csr = Signal(1)
 
     def elaborate(self,platform:Platform)->Module:
         m = Module()
@@ -184,6 +199,28 @@ class ALU(Elaboratable):
                     with m.Case(self.LBU,self.LB):
                         m.d.comb+=self.result.eq(self.Ra + self.immediate)
                         m.d.comb += self.load_mem.eq(0b01)
+                    with m.Case(self.SLLI):
+                        m.d.comb+=self.result.eq(self.Ra << self.shamt)
+
+                    with m.Case(self.CSRRW,self.CSRRWI):
+                        with m.If(self.reg_addr_in != Const(0)):
+                            m.d.comb += self.load_wb.eq(0b0)
+                        m.d.comb += self.load_wb_csr.eq(Const(1))
+                        m.d.comb += self.temp_csr.eq(self.CSR_in)
+                        m.d.comb+=self.result.eq(self.CSR_in)
+
+                    with m.Case(self.CSRRS,self.CSRRSI):
+                        with m.If(self.src1_addr != Const(0)):
+                            m.d.comb += self.load_wb_csr.eq(Const(1))
+                        m.d.comb += self.temp_csr.eq(self.CSR_in)
+                        m.d.comb+=self.result.eq(self.CSR_in | self.Ra)
+                    
+                    with m.Case(self.CSRRC,self.CSRRCI):
+                        with m.If(self.src1_addr != Const(0)):
+                            m.d.comb += self.load_wb_csr.eq(Const(1))
+                        m.d.comb += self.temp_csr.eq(self.CSR_in)
+                        m.d.comb+=  self.result.eq(self.CSR_in & (~self.Ra))
+                    
 
 
             with m.Case(self.B_type):
