@@ -75,15 +75,19 @@ class Wrapper(Elaboratable):
             # 2c:	01c12403          	lw	s0,28(sp)
             # 30:	02010113          	addi	sp,sp,32
             # 34:	00008067          	ret  
-        print("Enter the file name which you want to open:")
-        filename = input()
-        f = open("test_programs/"+filename, "r")
+        # print("Enter the file name which you want to open:")
+        # filename = input()
+        # f = open("test_programs/"+filename, "r")
 
-        inst = f.readlines()
+        # inst = f.readlines()
 
-        for i in range(len(inst)):
-            instruction = "0x"+inst[i]
-            m.d.sync += self.IF.mem[Const(i)].eq(int(instruction,16))
+        # for i in range(len(inst)):
+        #     instruction = "0x"+inst[i]
+        #     m.d.sync += self.IF.mem[Const(i)].eq(int(instruction,16))
+
+        m.d.sync += self.IF.mem[Const(0)].eq(0b00000000000100001010000101110011)
+        m.d.sync += self.IF.mem[Const(1)].eq(0b00000000000100001010000101110011)
+
 
         
         with m.If(self.ID.ifload==Const(1)):
@@ -112,6 +116,10 @@ class Wrapper(Elaboratable):
                 m.d.sync += self.Busy[self.ID.des].eq(Const(0))#Busy[ID.des]+Const(1))
             with m.Else():
                 m.d.sync += self.Busy[self.ID.des].eq(Const(1))
+
+        with m.If(self.ID.csr_addr != Const(0)):
+                m.d.sync += self.Busy_csr[self.ID.csr_addr].eq(Const(1))
+
             
 
 
@@ -236,7 +244,7 @@ class Wrapper(Elaboratable):
             m.d.sync += self.memory.csr_addr.eq(self.ALU.csr_addr)
             m.d.comb += self.memory.src_reg_addr.eq(self.ALU.src2_addr)
             m.d.comb += self.memory.alu_result.eq(self.ALU.result)
-            m.d.comb += self.memory.temp_csr.eq(self.ALU.temp_csr)
+            m.d.sync += self.memory.temp_csr.eq(self.ALU.temp_csr)
 
         
         with m.Elif(self.counter_branch == Const(4)):
@@ -262,7 +270,7 @@ class Wrapper(Elaboratable):
             m.d.sync += self.memory.csr_addr.eq(self.ALU.csr_addr)
             m.d.comb += self.memory.src_reg_addr.eq(self.ALU.src2_addr)
             m.d.comb += self.memory.alu_result.eq(self.ALU.result)
-            m.d.comb += self.memory.temp_csr.eq(self.ALU.temp_csr)
+            m.d.sync += self.memory.temp_csr.eq(self.ALU.temp_csr)
             m.d.sync += self.counter_branch.eq(Const(0))
 
         with m.Else():
@@ -306,7 +314,7 @@ class Wrapper(Elaboratable):
             m.d.sync += self.memory.csr_addr.eq(self.ALU.csr_addr)
             m.d.comb += self.memory.src_reg_addr.eq(0b00000)
             m.d.comb += self.memory.alu_result.eq(0x00000000)
-            m.d.comb += self.memory.temp_csr.eq(self.ALU.temp_csr)
+            m.d.sync += self.memory.temp_csr.eq(self.ALU.temp_csr)
 
 
 
@@ -321,6 +329,10 @@ class Wrapper(Elaboratable):
             with m.If(self.ID.des != self.reg_file.write_addr):
                 m.d.sync += self.Busy[self.reg_file.write_addr].eq(Const(0))#Busy[reg_file.write_addr]-Const(1))
                 m.d.sync += self.Busy1[self.reg_file.write_addr].eq(Const(0))
+
+        with m.If(self.ALU.csr_addr != self.reg_file.write_csr_addr):
+            with m.If(self.ID.csr_addr != self.reg_file.write_csr_addr):
+                m.d.sync += self.Busy_csr[self.reg_file.write_csr_addr].eq(Const(0))
 
         return m
 

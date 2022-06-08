@@ -157,11 +157,13 @@ class ID(Elaboratable):
                     m.d.comb+=self.ifload.eq(Const(1))
 
             with m.Case(self.CSRRW,self.CSRRS,self.CSRRC):
+                m.d.comb+=self.des.eq(self.instruction[7:12])
                 m.d.comb+=self.instruction_type.eq(0b001)
                 m.d.comb+=self.s1data_out.eq(self.s1_data_in)
                 m.d.comb+=self.csrdata_out.eq(self.csrdata_in)
 
             with m.Case(self.CSRRWI,self.CSRRSI,self.CSRRCI):
+                m.d.comb+=self.des.eq(self.instruction[7:12])
                 m.d.comb+=self.instruction_type.eq(0b001)
                 m.d.comb+=self.s1data_out.eq(Cat(self.instruction[15:20],0b000000000000000000000000000))
                 m.d.comb+=self.csrdata_out.eq(self.csrdata_in)

@@ -33,13 +33,15 @@ class Register_file(Elaboratable):
 
     def elaborate(self,platform:Platform)->Module:
         m = Module()
+        m.d.sync += self.csrs[Const(1)].eq(Const(5))
+        m.d.sync += self.reg[Const(1)].eq(Const(10))
         # m.d.sync += self.reg[Const(1)].eq(0x00000001)
 
         with m.If(self.reg_update[Const(8)] == Const(0)):
             m.d.sync += self.reg[Const(8)].eq(0x00000011)
 
-        with m.If(self.reg_update[Const(2)] == Const(0)):
-            m.d.sync += self.reg[Const(2)].eq(Const(0x000003FF))
+        # with m.If(self.reg_update[Const(2)] == Const(0)):
+        #     m.d.sync += self.reg[Const(2)].eq(Const(0x000003FF))
         #m.d.sync += self.reg[Const(7)].eq(0x00AABBCC)
         #m.d.sync += self.reg[Const(3)].eq(0x00000003)
        

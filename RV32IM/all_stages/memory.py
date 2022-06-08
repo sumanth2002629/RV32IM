@@ -37,6 +37,7 @@ class Memory_file(Elaboratable):
 
     def elaborate(self,platform:Platform)->Module:
         m = Module()
+
         m.d.sync += self.mem[Const(11)].eq(0x00000001)
         with m.Switch(self.load):
             with m.Case(self.nothing):

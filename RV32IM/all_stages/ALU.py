@@ -114,6 +114,7 @@ class ALU(Elaboratable):
     def elaborate(self,platform:Platform)->Module:
         m = Module()
         m.d.comb += self.inst_type_out.eq(self.inst_type)
+        
 
         m.d.comb += self.inst_type1_out.eq(self.inst_type1)
         m.d.comb += self.inst_type2_out.eq(self.inst_type2)
@@ -203,11 +204,11 @@ class ALU(Elaboratable):
                         m.d.comb+=self.result.eq(self.Ra << self.shamt)
 
                     with m.Case(self.CSRRW,self.CSRRWI):
-                        with m.If(self.reg_addr_in != Const(0)):
+                        with m.If(self.reg_addr_in == Const(0)):
                             m.d.comb += self.load_wb.eq(0b0)
                         m.d.comb += self.load_wb_csr.eq(Const(1))
                         m.d.comb += self.temp_csr.eq(self.CSR_in)
-                        m.d.comb+=self.result.eq(self.CSR_in)
+                        m.d.comb+=self.result.eq(self.Ra)
 
                     with m.Case(self.CSRRS,self.CSRRSI):
                         with m.If(self.src1_addr != Const(0)):
