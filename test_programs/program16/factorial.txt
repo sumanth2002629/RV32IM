@@ -1,0 +1,44 @@
+
+generated_factorial/factorial:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00010054 <main>:
+   10054:	fe010113          	addi	sp,sp,-32
+   10058:	00112e23          	sw	ra,28(sp)
+   1005c:	00812c23          	sw	s0,24(sp)
+   10060:	02010413          	addi	s0,sp,32
+   10064:	00a00793          	li	a5,10
+   10068:	fef42623          	sw	a5,-20(s0)
+   1006c:	fec42503          	lw	a0,-20(s0)
+   10070:	01c000ef          	jal	ra,1008c <fac>
+   10074:	fea42423          	sw	a0,-24(s0)
+   10078:	00000013          	nop
+   1007c:	01c12083          	lw	ra,28(sp)
+   10080:	01812403          	lw	s0,24(sp)
+   10084:	02010113          	addi	sp,sp,32
+   10088:	00008067          	ret
+
+0001008c <fac>:
+   1008c:	fe010113          	addi	sp,sp,-32
+   10090:	00112e23          	sw	ra,28(sp)
+   10094:	00812c23          	sw	s0,24(sp)
+   10098:	02010413          	addi	s0,sp,32
+   1009c:	fea42623          	sw	a0,-20(s0)
+   100a0:	fec42783          	lw	a5,-20(s0)
+   100a4:	00079663          	bnez	a5,100b0 <fac+0x24>
+   100a8:	00100793          	li	a5,1
+   100ac:	0200006f          	j	100cc <fac+0x40>
+   100b0:	fec42783          	lw	a5,-20(s0)
+   100b4:	fff78793          	addi	a5,a5,-1
+   100b8:	00078513          	mv	a0,a5
+   100bc:	fd1ff0ef          	jal	ra,1008c <fac>
+   100c0:	00050713          	mv	a4,a0
+   100c4:	fec42783          	lw	a5,-20(s0)
+   100c8:	02f707b3          	mul	a5,a4,a5
+   100cc:	00078513          	mv	a0,a5
+   100d0:	01c12083          	lw	ra,28(sp)
+   100d4:	01812403          	lw	s0,24(sp)
+   100d8:	02010113          	addi	sp,sp,32
+   100dc:	00008067          	ret

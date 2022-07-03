@@ -1,0 +1,53 @@
+
+generated_prog15/prog15:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00010054 <_start>:
+   10054:	fe010113          	addi	sp,sp,-32
+   10058:	00112e23          	sw	ra,28(sp)
+   1005c:	00812c23          	sw	s0,24(sp)
+   10060:	02010413          	addi	s0,sp,32
+   10064:	fe042623          	sw	zero,-20(s0)
+   10068:	00500513          	li	a0,5
+   1006c:	020000ef          	jal	ra,1008c <fib>
+   10070:	fea42623          	sw	a0,-20(s0)
+   10074:	00000013          	nop
+   10078:	00078513          	mv	a0,a5
+   1007c:	01c12083          	lw	ra,28(sp)
+   10080:	01812403          	lw	s0,24(sp)
+   10084:	02010113          	addi	sp,sp,32
+   10088:	00008067          	ret
+
+0001008c <fib>:
+   1008c:	fe010113          	addi	sp,sp,-32
+   10090:	00112e23          	sw	ra,28(sp)
+   10094:	00812c23          	sw	s0,24(sp)
+   10098:	00912a23          	sw	s1,20(sp)
+   1009c:	02010413          	addi	s0,sp,32
+   100a0:	fea42623          	sw	a0,-20(s0)
+   100a4:	fec42783          	lw	a5,-20(s0)
+   100a8:	00078863          	beqz	a5,100b8 <fib+0x2c>
+   100ac:	fec42703          	lw	a4,-20(s0)
+   100b0:	00100793          	li	a5,1
+   100b4:	00f71663          	bne	a4,a5,100c0 <fib+0x34>
+   100b8:	fec42783          	lw	a5,-20(s0)
+   100bc:	0300006f          	j	100ec <fib+0x60>
+   100c0:	fec42783          	lw	a5,-20(s0)
+   100c4:	fff78793          	addi	a5,a5,-1
+   100c8:	00078513          	mv	a0,a5
+   100cc:	fc1ff0ef          	jal	ra,1008c <fib>
+   100d0:	00050493          	mv	s1,a0
+   100d4:	fec42783          	lw	a5,-20(s0)
+   100d8:	ffe78793          	addi	a5,a5,-2
+   100dc:	00078513          	mv	a0,a5
+   100e0:	fadff0ef          	jal	ra,1008c <fib>
+   100e4:	00050793          	mv	a5,a0
+   100e8:	00f487b3          	add	a5,s1,a5
+   100ec:	00078513          	mv	a0,a5
+   100f0:	01c12083          	lw	ra,28(sp)
+   100f4:	01812403          	lw	s0,24(sp)
+   100f8:	01412483          	lw	s1,20(sp)
+   100fc:	02010113          	addi	sp,sp,32
+   10100:	00008067          	ret
